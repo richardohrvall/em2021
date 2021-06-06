@@ -36,6 +36,7 @@ em2021_clean <- function(indatafil) {
   separate(x1, c("hemmalag", "bortalag"), sep = "-") %>% 
   rename(hemmamal = x2,
          bortamal = x4) %>% 
+  mutate(across(where(is.character), str_trim)) %>%
   relocate(match)
 
 slutspel <- read_excel(indatafil,
@@ -51,6 +52,7 @@ slutspel <- read_excel(indatafil,
          bortamal = x7,
          extra = x9,
          extra_vinnare = x10) %>% 
+  mutate(across(where(is.character), str_trim)) %>% 
   relocate(match)
 
 skytteliga <- read_excel(indatafil,
@@ -58,6 +60,7 @@ skytteliga <- read_excel(indatafil,
   clean_names() %>% 
   mutate(bonus = "Skytteliga") %>% 
   rename(skytteliga_vinnare = x1) %>% 
+  mutate(skytteliga_vinnare = str_trim(skytteliga_vinnare)) %>% 
   relocate(bonus)
 
 namn <- read_excel(indatafil,
@@ -76,6 +79,7 @@ slutspelslag <- read_excel(indatafil,
                            between(row_number(), 29, 30) ~ "Final",
                            row_number() == 31 ~ "Vinnare")) %>% 
   rename(slutspelslag = x1) %>% 
+  mutate(slutspelslag = str_trim(slutspelslag)) %>% 
   relocate(slutspelsomgang)
   
 tips <- grund %>% 
@@ -108,6 +112,14 @@ em2021_tips <- em2021_tips_filer %>%
   map_df(em2021_clean, .id = "fil") 
 
 write_csv2(em2021_tips, here("data/tips", "em2021_tips.csv"))
+
+```
+
+
+```{r}
+
+
+  
 
 ```
 
