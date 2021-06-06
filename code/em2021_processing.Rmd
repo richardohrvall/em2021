@@ -104,18 +104,10 @@ Läs in alla excel-filer i en given mapp och lägg ut ett sammanhållet dataset
 ```{r}
 em2021_tips_filer <- dir_ls(here("data/tips"), regexp = "\\.xlsx$")
 
-#files_bolag <- list.files(here("data/bolag"), pattern = ".xlsx$", full.names = TRUE)
-
-read_files <- . %>% 
-  read_xlsx(., skip = 2, sheet = "Antal företag") %>%
-  clean_names() %>% 
-  {if("radetiketter" %in% names(.)) rename(., kommun = radetiketter) else .} %>%  
-  filter(kommun != "Totalsumma") %>% 
-  separate(kommun, c("llkk", "kommun"), sep = "\\s", extra = "merge")
-
 em2021_tips <- em2021_tips_filer %>% 
   map_df(em2021_clean, .id = "fil") 
 
+write_csv2(em2021_tips, here("data/tips", "em2021_tips.csv"))
 
 ```
 
