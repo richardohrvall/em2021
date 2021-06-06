@@ -115,11 +115,3 @@ write_csv2(em2021_tips, here("data/tips", "em2021_tips.csv"))
 
 ```
 
-
-```{r}
-
-
-  
-
-```
-

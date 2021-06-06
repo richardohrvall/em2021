@@ -1,0 +1,18 @@
+---
+title: "EM2021 resultat"
+author: "Richard Öhrvall"
+date: '2021-06-06'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# EM 2021 - resultat
+Det här är en fil för att ta fram statistik och grafer över hur det går i 2021 års EM-tips. Tipsen rättas i programmet em2021_scoring.
+
+```{r}
+
+```
+
