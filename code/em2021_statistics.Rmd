@@ -13,6 +13,165 @@ knitr::opts_chunk$set(echo = TRUE)
 Det här är en fil för att ta fram statistik och grafer över hur det går i 2021 års EM-tips. Tipsen rättas i programmet em2021_scoring.
 
 ```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(scales)
+library(glue)
+library(patchwork)
+theme_set(theme_light())
+
+em2021_tips <- read_csv2(here("data/tips", "em2021_tips.csv"))
+
+```
+
+## ÖVergripande statistik
+
+```{r}
+
+## Tips europamästare
+em2021_tips %>% 
+  filter(slutspelsomgang == "Vinnare") %>%
+  count(slutspelslag) %>% 
+  mutate(slutspelslag = fct_reorder(slutspelslag, n)) %>% 
+  ggplot(aes(n, slutspelslag, fill = slutspelslag)) +
+  scale_x_continuous(breaks = seq(0, 10, by = 2)) +
+  scale_fill_viridis_d(direction = -1) +
+  guides(fill = FALSE) +
+  geom_col() +
+  labs(title = "Europamästare enligt EM-tipset 2021",
+       y = "",
+       x = "Antal tips",
+       fill = "")
+# scale_x_continuous(expand = expansion(mult = c(0, .1))) +
+  
+ggsave(here("results", "tippade_vinnare.png"), dpi = 300,
+       type = "cairo", width = 8, height = 5)
+
+## Tips skytteligavinnare
+em2021_tips %>% 
+  count(skytteliga_vinnare) %>%
+  filter(!is.na(skytteliga_vinnare)) %>% 
+  mutate(skytteliga_vinnare = fct_reorder(skytteliga_vinnare, n)) %>% 
+  ggplot(aes(n, skytteliga_vinnare, fill = skytteliga_vinnare)) +
+  scale_x_continuous(breaks = seq(0, 10, by = 2)) +
+  scale_fill_viridis_d(direction = -1) +
+  guides(fill = FALSE) +
+  geom_col() +
+  labs(title = "Skytteligavinnare enligt EM-tipset 2021",
+       y = "",
+       x = "Antal tips",
+       fill = "")
+
+ggsave(here("results", "tippade_skytteligavinnare.png"), dpi = 300,
+       type = "cairo", width = 8, height = 5)
+
+
+```
+
+## Matchstatistik
+
+```{r}
+## Resultat
+graf_tips <- function(match_no, indata = em2021_tips) {
+  match <- indata %>% 
+    filter(match == match_no)
+  graf <- match %>% 
+    mutate(tips_resultat = paste(hemmamal, bortamal, sep = "-")) %>% 
+    count(tips_resultat) %>% 
+    mutate(tips_resultat = fct_reorder(tips_resultat, n)) %>% 
+    ggplot(aes(n, tips_resultat, fill = tips_resultat)) +
+    scale_x_continuous(breaks = seq(0, 10, by = 2)) +
+    scale_fill_viridis_d(direction = -1) +
+    guides(fill = FALSE) +
+    geom_col() +
+    labs(title = glue("Tippade resultat i match {match_no}: { match$hemmalag }-{ match$bortalag }, EM 2021"),
+         subtitle = "Enligt EM-tipset 2021",
+         y = "",
+         x = "Antal tips",
+         fill = "")
+  ggsave(here("results", glue("tippade_resultat_match{match_no}.png")), dpi = 300,
+       type = "cairo", width = 8, height = 5)
+  graf
+}
+
+# graf_tips(12)
+
+## Tecken
+graf_tecken <- function(match_no, indata = em2021_tips) {
+  match <- indata %>% 
+    mutate(match_tecken = fct_relevel(match_tecken, "1", "X")) %>% 
+    filter(match == match_no)
+  graf <- match %>% 
+    count(match_tecken) %>% 
+    ggplot(aes(match_tecken, n, fill = match_tecken)) +
+    scale_y_continuous(breaks = seq(0, 25, by = 5)) +
+    theme(panel.grid.minor.y = element_blank(),
+          panel.grid.major.x = element_blank()) +
+    scale_fill_viridis_d(direction = -1) +
+    guides(fill = FALSE) +
+    geom_col() +
+    labs(title = glue("Tippade resultattecken i match {match_no}: { match$hemmalag }-{ match$bortalag }, EM 2021"),
+         subtitle = "Enligt EM-tipset 2021",
+         y = "Antal tips",
+         x = "Tecken",
+         fill = "")
+  
+  ggsave(here("results", glue("tippade_tecken_match{match_no}.png")), dpi = 300,
+       type = "cairo", width = 8, height = 5)
+  graf
+}
+
+# graf_tecken(24)
+
+## Kombinerad tecken och resultat
+graf_tecken_resultat <- function(match_no, indata = em2021_tips) {
+  match <- indata %>% 
+    mutate(match_tecken = fct_relevel(match_tecken, "1", "X")) %>% 
+    filter(match == match_no)
+  graf_tecken <- match %>% 
+    count(match_tecken) %>% 
+    ggplot(aes(match_tecken, n, fill = match_tecken)) +
+    scale_y_continuous(breaks = seq(0, 25, by = 5)) +
+    theme(panel.grid.minor.y = element_blank(),
+          panel.grid.major.x = element_blank()) +
+    scale_fill_viridis_d(direction = -1, option = "viridis") +
+    guides(fill = FALSE) +
+    geom_col() +
+    labs(y = "Antal tips",
+         x = "Tecken",
+         fill = "")
+  
+   graf_resultat <- match %>% 
+    mutate(tips_resultat = paste(hemmamal, bortamal, sep = "-")) %>% 
+    count(tips_resultat) %>% 
+    mutate(tips_resultat = fct_reorder(tips_resultat, n)) %>% 
+    ggplot(aes(n, tips_resultat, fill = tips_resultat)) +
+    scale_x_continuous(breaks = seq(0, 10, by = 2)) +
+    scale_fill_viridis_d(direction = -1, option = "rocket") +
+    guides(fill = FALSE) +
+    geom_col() +
+    labs(y = "",
+         x = "Antal tips",
+         fill = "")
+  graf_kombinerad <- graf_tecken / graf_resultat +
+    plot_annotation(title = glue("Tippade resultat i match {match_no}: { match$hemmalag }-{ match$bortalag }, EM 2021"), subtitle = "Enligt EM-tipset 2021")
+   
+  ggsave(here("results", glue("tippade_tecken_resultat_match{match_no}.png")), dpi = 300,
+       type = "cairo", width = 7, height = 7)
+  graf_kombinerad
+}
+
+## Kör funktionerna
+
+graf_tecken_resultat(24)
+
+
+```
+
+## Poängställning i tipset
+
+```{r}
 
 ```
 

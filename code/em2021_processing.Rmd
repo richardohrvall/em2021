@@ -27,6 +27,7 @@ Skapa en funktion för att läsa in Excel-filer och rensa upp i dem och skapa et
 
 em2021_clean <- function(indatafil) {
   grund <- read_excel(indatafil,
+                      sheet = "Blad1",
                     range = "B5:E40", col_names = FALSE) %>% 
   clean_names() %>% 
   select(-x3) %>% 
@@ -40,6 +41,7 @@ em2021_clean <- function(indatafil) {
   relocate(match)
 
 slutspel <- read_excel(indatafil,
+                      sheet = "Blad1",
                     range = "I8:R53", col_names = FALSE) %>% 
   clean_names() %>% 
   filter(!is.na(x5) & str_sub(x5, 1, 1) != "T") %>% 
@@ -56,6 +58,7 @@ slutspel <- read_excel(indatafil,
   relocate(match)
 
 skytteliga <- read_excel(indatafil,
+                      sheet = "Blad1",
                     range = "B44", col_names = FALSE) %>% 
   clean_names() %>% 
   mutate(bonus = "Skytteliga") %>% 
@@ -64,10 +67,11 @@ skytteliga <- read_excel(indatafil,
   relocate(bonus)
 
 namn <- read_excel(indatafil,
+                      sheet = "Blad1",
                     range = "I56", col_names = FALSE) %>% 
   clean_names() %>% 
   rename(namn = x1)
-  
+
 slutspelslag <- read_excel(indatafil,
                            sheet = "Blad2",
                     range = "C4:C38", col_names = FALSE) %>% 
@@ -87,7 +91,12 @@ tips <- grund %>%
   bind_rows(slutspelslag) %>% 
   bind_rows(skytteliga) %>% 
   bind_cols(namn) %>% 
-  relocate(namn)
+  relocate(namn) %>% 
+  mutate(match_tecken = case_when(hemmamal > bortamal ~ "1",
+                                  hemmamal == bortamal ~ "X",
+                                  hemmamal < bortamal ~ "2")) %>% 
+  relocate(match_tecken, .after = bortamal)
+
 
 return(tips)
 
@@ -99,7 +108,9 @@ return(tips)
 Test
 
 ```{r}
-test <- em2021_clean(here("data/tips", "Leif Lindblad_EM-tipset2021.xlsx"))
+#test <- em2021_clean(here("data/tips", "Bosse Stendahl EM21.xlsx"))
+
+
 
 ```
 
@@ -111,7 +122,74 @@ em2021_tips_filer <- dir_ls(here("data/tips"), regexp = "\\.xlsx$")
 em2021_tips <- em2021_tips_filer %>% 
   map_df(em2021_clean, .id = "fil") 
 
-write_csv2(em2021_tips, here("data/tips", "em2021_tips.csv"))
+# Städa lite manuellt
+em2021_tips_clean <- em2021_tips %>% 
+  mutate(slutspelslag = str_to_title(word(slutspelslag, 1)),
+         skytteliga_vinnare = str_to_title(str_squish(skytteliga_vinnare)),
+         skytteliga_vinnare = fct_recode(skytteliga_vinnare,
+                                         "Kylian Mbappé" = "Kylian Mbappe",
+                                         "Kylian Mbappé" = "Mbappé",
+                                         "Kylian Mbappé" = "Mbappé Fra",
+                                         "Romelu Lukaku" = "Lukaku",
+                                         "Romelu Lukaku" = "Lukaku, Belgien",
+                                         "Christiano Ronaldo" = "Ronaldo",
+                                         "Memphis Depay" = "Depay",
+                                         "Thomas Müller" = "Tomas Muller"),
+         slutspelslag = fct_recode(slutspelslag,
+                                   "Nederländerna" = "Holland",
+                                   "Nordmakedonien" = "Makedonien",
+                                   "Portugal" = "Porugal",
+                                   "Tyskland" = "Tysland"),
+         hemmalag = str_to_title(str_squish(hemmalag)),
+         hemmalag = fct_recode(hemmalag,
+                               "Nederländerna" = "Holland",
+                               "Frankrike" = "Framnkrike"),
+         bortalag = str_to_title(str_squish(bortalag)),
+         bortalag = fct_recode(bortalag,
+                               "Nederländerna" = "Holland",
+                               "Nordmakedonien" = "Makedonien",
+                               "Frankrike" = "Franrike",
+                               "Tyskland" = "Tyskalnd"))
+
+
+write_csv2(em2021_tips_clean, here("data/tips", "em2021_tips.csv"))
+
+
+```
+
+
+
+
+
+Bara lite kontroller för att kolla städningen
+
+```{r}
+# test <- read_excel(em2021_tips_filer[13])
+
+# em2021_tips_clean %>%
+#   distinct(namn) %>%
+#   View()
+# 
+# em2021_tips_clean %>% 
+#   count(slutspelslag) %>% 
+#   View()
+# 
+# em2021_tips_clean %>% 
+#   filter(match > 36) %>% 
+#   count(hemmalag) %>% 
+#   View()
+
+# 
+# em2021_tips_clean %>%
+#   count(skytteliga_vinnare)
+# 
+# em2021_tips_clean %>%
+#   filter(slutspelsomgang == "Vinnare") %>%
+#   count(slutspelslag)
+# 
+# em2021_tips %>% 
+#   filter(match == 1) %>% 
+#   View()
 
 ```
 

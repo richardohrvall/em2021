@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # EM 2021 - matchfacit
+Det här är ett program för att rätta de inlämnade tipsen i 2021 års EM-tips. De enskilda Excel-filerna sätts samman i ett dataset genom programmet em2021_processing. 
 
 ```{r}
 library(tidyverse)
@@ -19,10 +20,12 @@ library(here)
 
 ```
 
-
+## Facit med matchresultat
 Skapa ett facit över matcherna 1-51. 
 
-Läs in Excel-fil med facit
+Läs in Excel-fil med facit. 
+
+Kolla om du ska lägga in matchtecken också!
 
 ```{r}
 grund <- read_excel(here("data/tips", "EM-tipset2021_facit.xlsx"),
@@ -63,6 +66,32 @@ Lägg ut
 
 ```{r}
 write_csv2(facit, here("data/tips", "em2021_facit.csv"))
+
+```
+
+
+## Rättning av inlämnade tips
+Hämta in dataset med alla tips
+```{r}
+em2021_tips <- read_csv2(here("data/tips", "em2021_tips.csv"))
+
+```
+
+Lägg in resultat i grundspelet. Ett poäng för rätt resultat. Tre poäng om rätt resultat och rätt antal mål för respektive lag.
+
+
+```{r}
+em2021_tips_scores <- em2021_tips 
+
+
+```
+
+Lägg in resultat i slutspelet. Både poäng för vilka lag som går vidare till respektive omgång, och poäng för de enskilda matcherna. För oavgjorda matcher gäller även att tippa om det går till straffar eller avgörs i förlängning.
+
+Lägg in extrapoäng för skytteligavinnare
+
+
+```{r}
 
 ```
 
