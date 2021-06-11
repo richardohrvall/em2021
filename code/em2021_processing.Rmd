@@ -125,31 +125,55 @@ em2021_tips <- em2021_tips_filer %>%
 # Städa lite manuellt
 em2021_tips_clean <- em2021_tips %>% 
   mutate(slutspelslag = str_to_title(word(slutspelslag, 1)),
+         skytteliga_vinnare = str_replace_all(skytteliga_vinnare, "[^[:alnum:]]", " "),
          skytteliga_vinnare = str_to_title(str_squish(skytteliga_vinnare)),
          skytteliga_vinnare = fct_recode(skytteliga_vinnare,
+                                         "Karim Benzema" = "Benzema",
+                                         "Diogo Jota" = "Diogo Jota Portugal",
                                          "Kylian Mbappé" = "Kylian Mbappe",
                                          "Kylian Mbappé" = "Mbappé",
+                                         "Kylian Mbappé" = "M Bappe",
+                                         "Kylian Mbappé" = "Mbappe",
                                          "Kylian Mbappé" = "Mbappé Fra",
                                          "Romelu Lukaku" = "Lukaku",
-                                         "Romelu Lukaku" = "Lukaku, Belgien",
+                                         "Romelu Lukaku" = "Romelo Lukaku",
+                                         "Romelu Lukaku" = "Lukaku Belgien",
                                          "Christiano Ronaldo" = "Ronaldo",
                                          "Memphis Depay" = "Depay",
                                          "Thomas Müller" = "Tomas Muller"),
          slutspelslag = fct_recode(slutspelslag,
+                                   "Kroatien" = "Kroaten",
+                                   "Belgien" = "Belgium",
+                                   "Danmark" = "Denmark",
+                                   "Polen" = "Poland",
+                                   "Ryssland" = "Russia",
+                                   "Skottland" = "Scottland",
                                    "Nederländerna" = "Holland",
                                    "Nordmakedonien" = "Makedonien",
                                    "Portugal" = "Porugal",
-                                   "Tyskland" = "Tysland"),
+                                   "Schweiz" = "Switzerland",
+                                   "Tyskland" = "Tysland",
+                                   "Tyskland" = "Tyslkand",
+                                   "Österrike" = "Oserrike"),
          hemmalag = str_to_title(str_squish(hemmalag)),
          hemmalag = fct_recode(hemmalag,
+                               "Belgien" = "Beglien",
+                               "Belgien" = "Belgium",
                                "Nederländerna" = "Holland",
-                               "Frankrike" = "Framnkrike"),
+                               "Frankrike" = "Framnkrike",
+                               "Spanien" = "Spain",
+                               "Tyskland" = "Tyslkand"),
          bortalag = str_to_title(str_squish(bortalag)),
          bortalag = fct_recode(bortalag,
+                               "Danmark" = "Denmark",
                                "Nederländerna" = "Holland",
                                "Nordmakedonien" = "Makedonien",
+                               "Polen" = "Poland",
                                "Frankrike" = "Franrike",
-                               "Tyskland" = "Tyskalnd"))
+                               "Schweiz" = "Switzerland",
+                               "Tyskland" = "Tyskalnd",
+                               "Österrike" = "Osterrike"),
+         bortalag = fct_relevel(bortalag, "Österrike", after = Inf))
 
 
 write_csv2(em2021_tips_clean, here("data/tips", "em2021_tips.csv"))
@@ -166,23 +190,23 @@ Bara lite kontroller för att kolla städningen
 ```{r}
 # test <- read_excel(em2021_tips_filer[13])
 
-# em2021_tips_clean %>%
+# em2021_tips %>%
 #   distinct(namn) %>%
 #   View()
 # 
-# em2021_tips_clean %>% 
-#   count(slutspelslag) %>% 
+# em2021_tips_clean %>%
+#   count(slutspelslag) %>%
 #   View()
-# 
-# em2021_tips_clean %>% 
-#   filter(match > 36) %>% 
-#   count(hemmalag) %>% 
-#   View()
-
 # 
 # em2021_tips_clean %>%
-#   count(skytteliga_vinnare)
+#   filter(match > 36) %>%
+#   count(hemmalag) %>%
+#   View()
 # 
+# # 
+# em2021_tips_clean %>%
+#   count(skytteliga_vinnare)
+# # 
 # em2021_tips_clean %>%
 #   filter(slutspelsomgang == "Vinnare") %>%
 #   count(slutspelslag)
